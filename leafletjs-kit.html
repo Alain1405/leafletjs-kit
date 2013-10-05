@@ -16,7 +16,19 @@
             <p><a href="http://leafletjs.com/">Leaflet &#45; An Open&#45;Source JavaScript Library for Mobile&#45;Friendly Interactive Maps</a></p>
             <ul>
               <li><a href="#leaflet-overintent">Leaflet.OverIntent</a></li>
+              <li><a href="#leaflet-ajax">leaflet-ajax</a></li>
             </ul>
+            
+            
+            <h3 id="leaflet-ajax">leaflet-ajax</h3>
+            <p>Allows you to call JSON via an Ajax call with a jsonp fallback.</p>
+            <pre><code>var geojsonLayer = new L.GeoJSON.AJAX("geojson.json");</code></pre>
+            <p>for jsonp add the option "dataType" and set it to "jsonp"</p>
+            <pre><code>var geojsonLayer = L.geoJson.ajax("http:webhost.fake/geojson.jsonp",{dataType:"jsonp"});</code></pre>
+            <p><strong>Note</strong>: that data starts to download when the layer is created NOT when it’s added to the map in order to get a head start.
+              <a class="block" href="leaflet-ajax.html">leaflet-ajax Demo</a></p>
+            <p><cite><a href="https://github.com/calvinmetcalf/leaflet-ajax">leaflet-ajax</a></cite></p>
+            
             
             <h3 id="leaflet-overintent">Leaflet.OverIntent</h3>
             <p>Aiming is neater than clicking! This plugin adds a new event mouseintent, that differs from mouseover since it reflects user intentions to aim a particular layer.
