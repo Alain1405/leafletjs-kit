@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Station Finder</title>
+    <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4.5/leaflet.css" />
+    <!--[if lte IE 8]><link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.4.5/L.ie.css" /><![endif]-->
+    <script src="http://cdn.leafletjs.com/leaflet-0.4.5/leaflet.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="css/interactive-scalable-styles.css" />
+    <script src="js/jquery-1.9.0.min.js"></script>
+    <script src="js/stationData.js"></script>
+    <link rel="stylesheet" href="css/leaflet.markercluster.css" />
+    <link rel="stylesheet" href="css/leaflet.markercluster.default.css" />
+    <!--[if lte IE 8]><link rel="stylesheet" href="css/leaflet.markercluster.default.ie.css" /><![endif]-->
+    <script src="js/leaflet.markercluster-src.js"></script>
+  </head>
+  <body>
+    <header><h1>Station Finder &#45; Interactive Scalable Demo</h1></header>
+    <div id="main">
+      <p>This is a data-driven mapping application that plots the location of London train stations. Amongst its features, its viewable in a number of styles, as well as it obtains geographic tilese from <a href="http://cloudmade.com/">third-party client cloudmade</a>.</p>
+      <p>The Leaflet.js mapping tool needs access to tiles – the square images that are pieced together to make the map. There are many tile providers out there, and you can host your own server if you wish. For this tutorial, we will use CloudMade. Head over to <a href="http://cloudmade.com">cloudmade.com</a>, sign up for a free developer account, and obtain your <abbr title="Application Programming Interface">api</abbr> key.</p>
+      <form>
+        <fieldset><legend>London Metro Station Selector</legend>
+          <label for="styleSelector">Select Style</label>
+          <select id="styleSelector">
+            <option value="">--- Select Style ---</option>
+            <option value="2">Fine Line</option>
+            <option value="997">Fresh</option>
+            <option value="999">Midnight Commander</option>
+            <option value="3">No Names</option>
+            <option value="998">Pale Dawn</option>
+            <option value="8">Red Alert</option>
+            <option value="1">The Original</option>
+            <option value="7">Tourist</option>
+          </select>
+          <label for="stationSelector">Select Station</label>
+          <select id="stationSelector">
+            <option>--- Select Station ---</option>
+          </select>
+        </fieldset>
+      </form>
+      <div id="map_holder"></div>
+    </div>
+<script>
+// import and read london train station data via stationData.js which has lat, lon, and name of each station
+// cloudmade api key
+var apiKey  = 'b7a734dfb2724f63828e3b0ea8c7bffa',
+// style id 997 fresh theme
+styleID = '997';
+$(document).ready(function() {
+  // select#stationSelector prompts map to pan, zoom, and center itself upon selected marker
+  // loop over stationData JSON again, creating option element with every loop, setting custom data attributes with station's geographic coordinates, and station's name for visual reference. finally, append the string to the select element to display the data
+  var stationOptions = "";
+  for (var i = 0; i < stationData.length; i++) {
+    stationOptions += '<option data-latitude="' + stationData[i][0] + '" data-longitude="' + stationData[i][1] + '">' + stationData[i][2] + '</option>';        
+  }
+  // set view by adding new onchange function to obtain lat and lon from data attributes for selected station. function will then call setView() method directly on the map, passing in the coordinates and setting the zoom level from the maxZoom value added when instantiating the tile layer
+  $("#stationSelector").append(stationOptions);
+    var southWest   = new L.LatLng(50.233152, -6.635742),
+    northEast   = new L.LatLng(53.644638, 2.109375),
+    bounds      = new L.LatLngBounds(southWest, northEast);
+    var latlng      = new L.LatLng(51.5171, 0.1062);
+    var map         = new L.Map('map_holder', 
+      {
+        center: latlng, 
+        zoom: 1, 
+        maxBounds: bounds, 
+        zoomControl: false
+      });
+    // generateTileURL function with default values
+    var cloudmadeUrl = generateTileURL(apiKey, styleID),
+    // create the text for the map attribution layer
+    attribution = 'Map data &copy; OpenStreetMap contributors.',
+    // set up the default values for our map tiles, including the maximum zoom level
+    tileLayer = new L.TileLayer(
+      cloudmadeUrl, 
+        { 
+          maxZoom: 18, 
+          attribution: attribution,
+          // detect if the device has a high-definition display. If so, it will use four tiles of half the size to utilise the higher resolution.
+          detectRetina: true
+        });
+      tileLayer.addTo(map);
+    // default zoom control is added to top left
+    // override this by creating new zoom control object and specifying required position from list of predefined options
+    var zoomControl     = new L.Control.Zoom({ position: 'topright'} );
+    // create new scale control object to accurately display the scale of the map
+    // attribution layer is positioned down on the bottom right of the map object, so position the scale control over on bottom left
+    var scaleControl    = new L.Control.Scale({ position: 'bottomleft' });
+    // add to map object 
+    zoomControl.addTo(map);
+    // add to map object
+    scaleControl.addTo(map);
+    // reference addMarkers function after zoom and scale controls, sending required parameters, to generate and add markers to the map
+    addMarkers(map, stationData);
+    // select#styleSelector holds names and ids of default cloudmade styles 
+    // onchange handler will detect when a new style is selected and set the id of the chosen style to the styleID global var
+               if ($("#styleSelector").val() !== "") {
+                   styleID = $("#styleSelector").val();
+                   // which is passed through tile generation function to update the url
+                   var revisedURL = generateTileURL(apiKey, styleID);
+                // call setURL() method to update value and regenerate the tiles for updated display
+                tileLayer.setUrl(revisedURL);
+               }
+            });
+            $("#stationSelector").bind("change", function() {
+                var selectedStation = $("#stationSelector :selected");
+                if (selectedStation.attr("data-latitude") !== undefined && selectedStation.attr("data-longitude") !== undefined) {
+                    var thisLat = selectedStation.attr("data-latitude");
+                    var thisLon = selectedStation.attr("data-longitude");
+                    map.setView([thisLat, thisLon], map.getMaxZoom());
+                } else {
+                    map.setView(latlng, 1);
+                }
+            });
+});
+// addMarkers function to generate markers; accepts map object and stationData in JSON
+// add marker cluster plug-in to group markers in clusters based on generated polylines from each marker's geographic location; clusters update and animate map on zoom in or out
+function addMarkers(map, stationData) {
+  // create new MarkerClusterGroup object to place markers
+  var markers = new L.MarkerClusterGroup();
+  // loop over data, creating a new Marker object for each station, setting the lat, lon, and title
+  for (var i = 0; i < stationData.length; i++) {
+    var a = stationData[i];
+    var popupDetail = a[2];
+    var title = popupDetail.replace(/(<([^>]+)>)/ig,"");
+    var marker = new L.Marker(new L.LatLng(a[0], a[1]), { title: title });
+    // as well as binding a Popup window to also display title string and any included html
+    marker.bindPopup(popupDetail);
+    // add populated markers objects as a layer onto the map, instead of the individual station markers
+    markers.addLayer(marker);        
+  }
+  map.addLayer(markers);
+}
+
+// generateTileURL - accept the API key and style ID variables
+// this will generate the required string URL for inclusion in the map
+// reuse this method a little later on to change the style of the map tiles from a select box element
+function generateTileURL(apiKey, styleID) {
+  return 'http://{s}.tile.cloudmade.com/' + apiKey + '/' + styleID + '/256/{z}/{x}/{y}.png';
+}  
+</script>
+    <footer>
+      <p><cite><a href="http://www.webdesignermag.co.uk/tutorials/15569/">Build Stylish, Scalable Maps Using Leaflet.js</a></cite></p>
+      <h2 class="backtomain"><a href="leafletjs-kit.html">Back to LeafletJS Kit Main</a></h2>
+    </footer>
+  </body>
+</html>
