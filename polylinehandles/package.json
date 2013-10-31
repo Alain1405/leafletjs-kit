@@ -1,0 +1,22 @@
+{
+    "name": "leaflet-polylinehandles"
+  , "version": "0.0.1"
+  , "description": ""
+  , "keywords": ["Leaflet", "GIS"]
+  , "main": "leaflet.polylinehandles.js"
+  , "bugs": {
+    "url": "https://github.com/makinacorpus/Leaflet.PolylineHandles/issues"
+  }
+  , "repository": {
+    "type": "git",
+    "url": "git://github.com/makinacorpus/Leaflet.PolylineHandles.git"
+  }
+  , "license": "MIT"
+  , "scripts": {
+  }
+  , "dependencies": {
+    "leaflet": "*",
+    "leaflet-almostover": "*",
+    "leaflet-snap": "*"
+  }
+}
